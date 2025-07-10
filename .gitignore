@@ -1,0 +1,165 @@
+# ======================== Flutter 特有文件 ========================
+
+# 核心构建产物
+# 这是 Flutter 项目的主要构建输出目录，包含最终的应用包（APK、AAB、IPA）等。
+/build/
+
+# Dart 工具生成文件
+# 包含 Dart 分析服务器数据、Pub 缓存信息等。
+.dart_tool/
+
+# Flutter 插件依赖缓存和生成文件
+# 这些文件在 Flutter 使用插件时自动生成。
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# ======================== IDE（集成开发环境）特有文件 ========================
+
+# IntelliJ / Android Studio 特有文件
+# 这些文件存储项目设置、工作区数据和本地历史记录。它们是用户特定的，不应提交到版本控制。
+.idea/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/codeStyles/
+.idea/copyright/
+.idea/dataSources/
+.idea/fileTemplates/
+.idea/inspectionProfiles/
+.idea/jsLibraryMappings.xml
+.idea/vcs.xml
+.idea/dictionaries/
+.idea/runConfigurations/
+.idea/scopes/
+.idea/shelf/
+.idea/sonarlint/
+.idea/sbt.xml
+.idea/uiDesigner.xml
+.idea/vcs.xml
+.idea/webResources.xml
+.idea/yml-schemas.xml
+
+# VS Code 特有文件
+# 用户特定的设置和启动配置。
+.vscode/
+.vscode/settings.json
+.vscode/launch.json
+.vscode/*.code-workspace
+
+# 其他常见的 IDE/操作系统文件
+.DS_Store # macOS 特有的文件夹元数据文件
+Thumbs.db # Windows 特有的缩略图缓存文件
+
+# ======================== 平台特定的构建产物和配置 ========================
+
+# Android 特有构建产物和本地配置
+/android/.gradle/ # Gradle 缓存和构建输出目录
+/android/app/build/ # Android 应用的构建输出目录（APK, AAB 等）
+/android/app/.cxx/ # NDK (Native Development Kit) 构建输出目录
+/android/local.properties # 本地属性文件，通常包含 SDK 路径、keystore 信息等敏感数据，绝不能提交！
+/android/.idea/ # Android 模块内部的 Android Studio 特有项目文件
+/android/*.iml # Android 模块的 IntelliJ 模块文件
+*.jks # Keystore 签名文件（发布 Android 应用需要，但绝不能直接提交到 Git！）
+*.keystore # Keystore 签名文件（同上）
+
+# iOS 特有构建产物和本地配置
+/ios/.symlinks/ # CocoaPods 创建的符号链接
+/ios/Flutter/Generated.framework/ # 生成的 Flutter framework
+/ios/Flutter/flutter_export_environment.sh # Flutter 环境脚本
+/ios/Pods/ # CocoaPods 依赖项（这些应该通过 'pod install' 命令安装，而不是提交到 Git）
+/ios/Runner.xcworkspace/xcuserdata/ # 用户特定的 Xcode 工作区数据
+/ios/.idea/ # iOS 模块内部的 Android Studio/IntelliJ 特有项目文件
+/ios/*.xcodeproj/xcuserdata/ # 用户特定的 Xcode 项目数据
+/ios/Flutter/App.framework/ # 生成的 Flutter 应用程序 framework
+/ios/Flutter/engine/ # Flutter 引擎文件（可能很大）
+/ios/Flutter/Flutter.podspec # 生成的 Podspec 文件 (CocoaPods)
+/ios/Flutter.xcconfig # 生成的 Xcode 配置文件（如果未进行自定义，通常可以提交）
+
+# Windows 特有构建产物
+/windows/build/
+/windows/flutter/generated_plugins.cmake
+/windows/runner/
+/windows/CMakeLists.txt.user # CMake 用户特定设置
+
+# Linux 特有构建产物
+/linux/build/
+/linux/flutter/generated_plugins.cmake
+/linux/runner/
+/linux/CMakeLists.txt.user
+
+# macOS 特有构建产物
+/macos/build/
+/macos/flutter/generated_plugins.cmake
+/macos/Runner.xcodeproj/xcuserdata/ # 用户特定的 Xcode 项目数据
+/macos/Runner.xcworkspace/xcuserdata/ # 用户特定的 Xcode 工作区数据
+
+# Web 特有构建产物
+/web/index.html # 生成的 HTML 文件（可重新生成）
+/web/flutter_bootstrap.js # 生成的 JavaScript 文件
+/web/manifest.json # 生成的 Web 应用清单文件
+/web/icons/ # 生成的 Web 应用图标
+
+# ======================== 生成的代码和缓存文件 ========================
+
+# Pub 缓存和包特定文件
+.pub-cache/
+
+# build_runner 生成的代码 (例如：json_serializable, freezed)
+# 这些文件通常以 .g.dart 或 .freezed.dart 结尾。
+# 如果你使用了 build_runner，请务必添加这些模式。
+# 注意：有时为了 CI/CD 简单化，你可能会选择提交 .g.dart 文件，但通常它们应被视为生成文件。
+*.g.dart
+*.freezed.dart
+# 如果使用了 Riverpod 的代码生成器，请添加：
+*.riverpod.dart
+
+# ======================== 临时文件和本地文件 ========================
+
+# 日志文件
+*.log
+*.log.*
+/logs/ # 如果你有专门的日志目录
+
+# 编辑器或操作系统创建的临时文件
+*~ # 以 ~ 结尾的文件（通常是备份文件）
+*.bak # 备份文件
+*.swp # Vim 交换文件
+# .DS_Store # macOS 桌面服务存储文件（已包含在上方，但这里再次强调）
+
+# 崩溃报告
+*.crash
+# Android 崩溃报告
+/crashlytics/
+/firebase_crashlytics_plugin_test_app/
+
+# 其他不应提交的杂项本地文件
+.env # 环境变量文件（通常包含敏感信息，绝不能提交！）
+.env.* # 特定的环境变量文件（例如 .env.development, .env.production）
+.env.local
+.vscode-test/
+.config/
+/data/ # 示例：如果你有一个本地数据存储目录
+local_config.json # 示例：一个本地配置文件
+
+# ======================== 其他常用 Gitignore 模式 ========================
+
+# Yarn / Node.js 依赖（如果你的项目也使用了 JS/TS 工具）
+node_modules/
+package-lock.json # 或 yarn.lock，如果你重新生成它
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# ======================== 重要注意事项 ========================
+
+# 如果你更喜欢为每个平台单独管理 .gitignore 文件（例如：android/.gitignore, ios/.gitignore），
+# 那么可以从这个根目录下的 .gitignore 文件中删除相应的行。
+# 但通常情况下，一个位于项目根目录的 .gitignore 文件会更简单易管理。
+
+# 如果某个文件或文件夹已经提交到 Git 仓库，那么仅仅将其添加到 .gitignore
+# 不会将其从仓库中移除。你必须首先使用以下命令取消跟踪它：
+# git rm --cached <文件或目录名>
+# 然后，提交 .gitignore 文件和移除操作：
+# git add .gitignore
+# git commit -m "更新 .gitignore 并取消跟踪旧文件"
