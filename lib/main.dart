@@ -6,11 +6,25 @@ import 'package:http/http.dart' as http;
 import 'core/comm/api_service/UserApiService.dart';
 import 'core/comm/bean/User.dart';
 import 'core/comm/net/ApiException.dart';
+import 'core/comm/net/DioClientInitializer.dart';
 import 'core/comm/net/LoadingInterceptor.dart';
 import 'core/comm/net/Result.dart';
 import 'core/comm/utils/LoggerUtil.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // 确保 Flutter 绑定初始化
+
+  // >>>>>>>>>> 关键步骤：在 runApp() 之前异步初始化 SecurityContext <<<<<<<<<<
+  // try {
+  //   await DioClientInitializer.initializeSecurityContext(); // <<<<<<<<<<< 新增/修改点
+  //   Log.d('main: SecurityContext 初始化完成。', tag: 'main');
+  // } catch (e) {
+  //   Log.e('main: SecurityContext 初始化失败: $e', tag: 'main');
+  //   // 在这里你可以选择：
+  //   // 1. 弹出一个错误提示，然后退出应用
+  //   // 2. 继续运行，但网络请求可能会因为证书问题而失败
+  //   // 建议在应用启动时展示一个加载/错误页面
+  // }
   runApp(const MyApp());
 }
 
