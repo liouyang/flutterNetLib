@@ -1,7 +1,10 @@
 /// lib/network/dio_client.dart
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
+import 'package:flutter/services.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:flutter/foundation.dart'; // 用于判断是否是调试模式
 
@@ -18,6 +21,8 @@ import 'Result.dart';
 class DioClient {
   static final DioClient _instance = DioClient._internal();
   late Dio _dio;
+  static SecurityContext? _globalSecurityContext;
+
 
   DioClient._internal() {
     Log.d('正在初始化 Dio 客户端。', tag: 'DioClient'); // 中文日志
@@ -27,6 +32,28 @@ class DioClient {
       receiveTimeout: const Duration(seconds: 15), // 接收超时时间
       contentType: 'application/json; charset=utf-8', // 默认请求内容类型
     ));
+    // ===============================================================
+    // >>>>>>>>>> 配置 SSL/TLS - 信任自定义根证书 <<<<<<<<<<
+    // ===============================================================
+    (_dio.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (HttpClient client) {
+
+      // 如果你同时需要处理那些不被 SecurityContext 信任的证书 (如自签名但又不想加CA的)
+      // 可以在这里设置 badCertificateCallback，但它的优先级低于 SecurityContext 的信任链
+      // 只有当证书不被默认信任，也不被 SecurityContext 信任时，badCertificateCallback 才会触发
+      client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+        // 这里可以打印一些调试信息
+        Log.w('HTTPS: badCertificateCallback 触发 for host: $host. 证书主题: ${cert.subject}', tag: 'DioClientCert');
+        // 如果你只信任通过 SecurityContext 加载的证书，这里直接返回 false
+        return true; // 不信任任何未被 SecurityContext 明确信任的证书
+      };
+
+      return client;
+    };
+    // ===============================================================
+    // >>>>>>>>>> 配置 SSL/TLS 结束 <<<<<<<<<<
+    // ===============================================================
+
+
 
     // 添加拦截器，顺序很重要！
     // 1. AuthInterceptor: 处理认证信息 (如添加 Token)
@@ -51,6 +78,45 @@ class DioClient {
       ));
     }
     Log.d('Dio 客户端初始化完成。', tag: 'DioClient'); // 中文日志
+  }
+
+
+  // 如果你需要客户端证书认证，这是加载客户端证书和私钥的方法
+  Future<void> _loadClientCertificates(SecurityContext securityContext) async {
+    try {
+      final ByteData clientCertData = await rootBundle.load('assets/certs/client_cert.pem');
+      final ByteData clientKeyData = await rootBundle.load('assets/certs/client_key.pem');
+
+      securityContext.useCertificateChainBytes(clientCertData.buffer.asUint8List());
+      securityContext.usePrivateKeyBytes(clientKeyData.buffer.asUint8List());
+      // 如果私钥有密码
+      // securityContext.usePrivateKeyBytes(clientKeyData.buffer.asUint8List(), password: 'your_private_key_password');
+      Log.i('HTTPS: 已加载客户端证书和私钥到 SecurityContext。', tag: 'DioClientCert');
+    } catch (e, st) {
+      Log.e('HTTPS: 加载客户端证书或私钥失败: $e', tag: 'DioClientCert', error: e, stackTrace: st);
+    }
+  }
+
+  // 异步方法，用于加载证书并创建 SecurityContext
+  Future<SecurityContext> _loadAndSetSecurityContext() async {
+    // 如果已经加载过，直接返回
+    if (_globalSecurityContext != null) {
+      return _globalSecurityContext!;
+    }
+
+    final SecurityContext securityContext = SecurityContext.defaultContext;
+    try {
+      // 加载你的根证书文件 (PEM 格式)
+      final ByteData data = await rootBundle.load('assets/certs/my_root_ca.pem'); // <<<<< 你的根证书路径
+      // 添加信任的根证书
+      securityContext.setTrustedCertificatesBytes(data.buffer.asUint8List());
+      Log.i('HTTPS: 已加载并信任根证书 assets/certs/my_root_ca.pem。', tag: 'DioClientCert');
+    } catch (e, st) {
+      Log.e('HTTPS: 加载根证书失败: $e', tag: 'DioClientCert', error: e, stackTrace: st);
+      // 在生产环境中，如果证书加载失败，可能需要抛出更严重的错误或终止应用
+    }
+    _globalSecurityContext = securityContext; // 缓存 SecurityContext
+    return securityContext;
   }
 
   /// 获取 DioClient 的单例实例
