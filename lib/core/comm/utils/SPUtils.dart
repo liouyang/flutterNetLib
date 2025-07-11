@@ -1,6 +1,7 @@
 /// lib/utils/sp_util.dart
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert'; // 用于 JSON 编解码
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart'; // 用于 JSON 编解码
 
 /// SharedPreferences 工具类。
 /// 采用单例模式，确保 SharedPreferences 实例只被初始化一次。

@@ -1,4 +1,14 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_test_new/core/comm/utils/SPUtils.dart';
+import 'package:http/http.dart' as http;
+
+import 'core/comm/api_service/UserApiService.dart';
+import 'core/comm/bean/User.dart';
+import 'core/comm/net/ApiException.dart';
+import 'core/comm/net/LoadingInterceptor.dart';
+import 'core/comm/net/Result.dart';
+import 'core/comm/utils/LoggerUtil.dart';
 
 void main() {
   runApp(const MyApp());
@@ -7,116 +17,160 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    SpUtil.init();
+
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Loading Interceptor Test',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrangeAccent),
+        primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // 在这里设置全局 Context
+      builder: (context, child) {
+        return child!;
+      },
+      home: const HomeScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomeScreenState extends State<HomeScreen> {
+  final UserApiService _userApiService = UserApiService();
+  String _message = '点击按钮测试加载';
 
-  void _incrementCounter() {
+  Future<void> _testLoadingInterceptor() async {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _message = '正在请求...';
     });
+
+    Log.d('HomeScreen: 开始测试 LoadingInterceptor.', tag: 'HomeScreen');
+
+    // 假设你的 API 会有一定延迟，模拟网络请求
+    final Result<List<User>, ApiException> result = await _userApiService.getUsers();
+
+    result.when(
+      success: (users) {
+        setState(() {
+          _message = '请求成功，获取到 ${users.length} 个用户！';
+        });
+        Log.i('HomeScreen: 获取用户成功，数量：${users.length}', tag: 'HomeScreen');
+      },
+      failure: (error) {
+        setState(() {
+          _message = '请求失败: ${error.message}';
+        });
+        Log.e('HomeScreen: 获取用户失败', tag: 'HomeScreen', error: error);
+      },
+    );
   }
+
+  Future<void> _testHttpPackage() async {
+    setState(() {
+      _message = '正在使用 http 包测试网络...';
+    });
+    try {
+      final uri = Uri.parse('http://jsonplaceholder.typicode.com/users');
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _message = 'http 包请求成功！状态码: ${response.statusCode}, 数据长度: ${response.body.length}';
+        });
+        Log.i('http包测试成功: ${response.body.substring(0, 100)}...', tag: 'HttpTest');
+      } else {
+        setState(() {
+          _message = 'http 包请求失败！状态码: ${response.statusCode}, 错误: ${response.body}';
+        });
+        Log.e('http包测试失败: ${response.statusCode} - ${response.body}', tag: 'HttpTest');
+      }
+    } catch (e, st) {
+      setState(() {
+        _message = 'http 包请求发生异常: $e';
+      });
+      Log.e('http包测试异常', tag: 'HttpTest', error: e, stackTrace: st);
+    }
+  }
+
+  // 模拟一个较长时间的请求，以便观察加载效果
+  Future<void> _testLongRequest() async {
+    setState(() {
+      _message = '正在进行长时间请求...';
+    });
+    Log.d('HomeScreen: 开始长时间请求测试.', tag: 'HomeScreen');
+    try {
+      // 模拟一个带延迟的 GET 请求，可以指向一个真实但响应慢的接口，
+      // 或者你的 DioClient 的 baseUrl 已经配置好了，这里直接用一个不存在的路径来触发 onError
+      // 为了测试加载，我们可以让这个请求延迟一点。
+      // 注意：直接在这里用 DioClient 是为了快速测试，实际项目中仍通过 UserApiService 封装。
+      // 这里只是为了方便演示长时间请求。
+      await Future.delayed(const Duration(seconds: 3)); // 模拟3秒网络延迟
+      // 触发一个可能失败的请求，或者你有一个真实的慢速API
+      // final result = await _userApiService.someLongRunningApiCall();
+      // 为了演示，我们再次调用getUsers，但知道它可能被延迟
+      final result = await _userApiService.getUsers();
+
+
+      result.when(
+        success: (users) {
+          setState(() {
+            _message = '长时间请求成功，获取到 ${users.length} 个用户！';
+          });
+          Log.i('HomeScreen: 长时间请求成功，数量：${users.length}', tag: 'HomeScreen');
+        },
+        failure: (error) {
+          setState(() {
+            _message = '长时间请求失败: ${error.message}';
+          });
+          Log.e('HomeScreen: 长时间请求失败', tag: 'HomeScreen', error: error);
+        },
+      );
+    } catch (e, st) {
+      setState(() {
+        _message = '长时间请求发生异常: $e';
+      });
+      Log.e('HomeScreen: 长时间请求捕获到异常', tag: 'HomeScreen', error: e, stackTrace: st);
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    setGlobalContext(context); // 调用 LoadingInterceptor 中的 setGlobalContext
+
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('加载拦截器测试'),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text('You have pushed the button this many times:'),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              _message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _testLoadingInterceptor,
+              child: const Text('测试加载拦截器 (快速请求)'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _testLongRequest,
+              child: const Text('测试加载拦截器 (模拟长时间请求)'),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

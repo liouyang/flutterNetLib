@@ -1,6 +1,8 @@
 /// lib/network/interceptors/auth_interceptor.dart
 import 'package:dio/dio.dart';
 
+import '../utils/SPUtils.dart';
+
 /// 认证拦截器
 /// 用于在请求头中添加认证 Token。
 class AuthInterceptor extends Interceptor {
@@ -8,7 +10,7 @@ class AuthInterceptor extends Interceptor {
   String? _getAuthToken() {
     // 实际应用中，您会从 SharedPreferences, SecureStorage 或状态管理中获取 Token
     // 例如：return 'your_jwt_token_here';
-    return null; // 暂时返回 null
+    return SpUtil().getString("token"); // 暂时返回 null
   }
 
   @override
@@ -24,12 +26,6 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // 如果是 401 未授权错误，可以尝试刷新 Token 或跳转登录页
-    if (err.response?.statusCode == 401) {
-      // 可以在这里添加刷新 Token 的逻辑
-      // 例如：Router.push('/login');
-      print('Token 无效或已过期，请重新登录');
-    }
     super.onError(err, handler);
   }
 }

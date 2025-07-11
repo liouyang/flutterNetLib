@@ -47,6 +47,8 @@ dependencies:
 
   fluttertoast: ^8.2.12 # 社区支持
 
+  http: ^1.2.1 # 添加这一行
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
