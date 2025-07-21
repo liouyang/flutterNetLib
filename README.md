@@ -1,6 +1,6 @@
-# flutter_test_new
+# flutter_net_lib
 
-A new Flutter project.
+A new Flutter net lib project.
 
 ## Getting Started
 
